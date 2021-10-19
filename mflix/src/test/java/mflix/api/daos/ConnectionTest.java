@@ -1,7 +1,7 @@
 package mflix.api.daos;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
+import com.mongodb.client.*;
+import com.mongodb.client.FindIterable;
 import mflix.config.MongoDBConfiguration;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import org.bson.Document;
 
 @SpringBootTest(classes = {MongoDBConfiguration.class})
 @EnableConfigurationProperties
@@ -79,5 +80,22 @@ public class ConnectionTest extends TicketTest {
         "Could not find all expected collections. Check your restore step",
         found,
         collectionNames.size());
+  }
+
+  @Test
+  public void testFindThirtyFirstMovie() {
+    MongoDatabase database = mongoClient.getDatabase("sample_mflix");
+    MongoCollection<Document> collection = database.getCollection("movies");
+    AggregateIterable<Document> result = collection.aggregate(Arrays.asList(new Document("$match",
+                    new Document("year", 1991L)),
+            new Document("$sort",
+                    new Document("title", 1L)),
+            new Document("$skip", 30L),
+            new Document("$project",
+                    new Document("title", 1L))));
+    Assert.assertEquals(
+            "Returned wrong movie name",
+            "Cape Fear",
+            result.first().get("title"));
   }
 }
