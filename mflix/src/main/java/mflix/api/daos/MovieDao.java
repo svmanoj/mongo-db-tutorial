@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+
 @Component
 public class MovieDao extends AbstractMFlixDao {
 
@@ -62,7 +65,7 @@ public class MovieDao extends AbstractMFlixDao {
 
         List<Bson> pipeline = new ArrayList<>();
         // match stage to find movie
-        Bson match = Aggregates.match(Filters.eq("_id", new ObjectId(movieId)));
+        Bson match = Aggregates.match(eq("_id", new ObjectId(movieId)));
         pipeline.add(match);
         // TODO> Ticket: Get Comments - implement the lookup stage that allows the comments to
         // retrieved with Movies.
@@ -118,11 +121,13 @@ public class MovieDao extends AbstractMFlixDao {
      */
     public List<Document> getMoviesByCountry(String... country) {
 
-        Bson queryFilter = new Document();
-        Bson projection = new Document();
+        Bson queryFilter = in("countries", country);
+        System.out.println("Country is");
+        System.out.println(country);
+        Bson projection = Projections.include("title");
         //TODO> Ticket: Projection - implement the query and projection required by the unit test
         List<Document> movies = new ArrayList<>();
-
+        moviesCollection.find(queryFilter).projection(projection).iterator().forEachRemaining(movies::add);
         return movies;
     }
 
