@@ -1,5 +1,6 @@
 package mflix.api.daos;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoWriteException;
 import com.mongodb.WriteConcern;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import java.text.MessageFormat;
+import mflix.api.daos.IncorrectDaoOperation;
 import java.util.Map;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
@@ -155,6 +157,15 @@ public class UserDao extends AbstractMFlixDao {
         // be updated.
         //TODO > Ticket: Handling Errors - make this method more robust by
         // handling potential exceptions when updating an entry.
-        return false;
+        Bson emailFilter = Filters.eq("email", email);
+
+        if(userPreferences != null){
+            UpdateResult res = usersCollection.updateOne(emailFilter, Updates.set("preferences", userPreferences));
+        }else {
+            throw new IncorrectDaoOperation("Preferences is empty");
+        }
+
+
+        return true;
     }
 }

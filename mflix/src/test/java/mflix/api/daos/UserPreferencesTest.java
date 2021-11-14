@@ -56,6 +56,10 @@ public class UserPreferencesTest extends TicketTest {
     HashMap<String, String> userPrefs = new HashMap<>();
     userPrefs.put(key, expected);
 
+    User usera = dao.getUser(email);
+    System.out.println("Before");
+    System.out.println(usera.getPreferences());
+
     Assert.assertTrue(
         "The response of the updateUserPreferences should result in true. Check your implementation of this method",
         dao.updateUserPreferences(email, userPrefs));
