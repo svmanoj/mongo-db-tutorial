@@ -81,7 +81,20 @@ public class CommentDao extends AbstractMFlixDao {
         // comment.
         // TODO> Ticket - Handling Errors: Implement a try catch block to
         // handle a potential write exception when given a wrong commentId.
-        return null;
+        System.out.println("Comment is");
+        System.out.println(comment.getId());
+        try {
+            if(comment.getId() != null){
+                commentCollection.insertOne(comment);
+            }else {
+                throw new Exception("No id");
+            }
+
+        }catch (Exception e) {
+            throw new IncorrectDaoOperation("");
+        }
+
+        return comment;
     }
 
     /**
@@ -103,7 +116,20 @@ public class CommentDao extends AbstractMFlixDao {
         // user own comments
         // TODO> Ticket - Handling Errors: Implement a try catch block to
         // handle a potential write exception when given a wrong commentId.
-        return false;
+        Document matchQuery = new Document("_id", new ObjectId(commentId)).append("email", email);
+        Document updateQuery = new Document("text", text).append("date", new Date().toString());
+        long updatedCount = 0;
+        try {
+            UpdateResult res = commentCollection.updateOne(matchQuery, new Document("$set", updateQuery));
+            updatedCount = res.getModifiedCount();
+        }catch (Exception e) {
+            return false;
+        }
+        if(updatedCount==1){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     /**
@@ -119,7 +145,13 @@ public class CommentDao extends AbstractMFlixDao {
         // TIP: make sure to match only users that own the given commentId
         // TODO> Ticket Handling Errors - Implement a try catch block to
         // handle a potential write exception when given a wrong commentId.
-        return false;
+        Document query = new Document("_id", new ObjectId(commentId)).append("email", email);
+        DeleteResult deleteResult = commentCollection.deleteOne(query);
+        if(deleteResult.getDeletedCount() ==1){
+            return true;
+        }else {
+            return false;
+        }
     }
 
     /**

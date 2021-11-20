@@ -151,7 +151,7 @@ public class UpdateCreateCommentTest extends TicketTest {
 
   @Test
   public void testAddCommentUsingObjectId() {
-    String id = "5a9427648b0beebeb69579cc";
+    String id = "5a9427648b0beebeb69579f5";
     Comment comment = dao.getComment(id);
 
     Assert.assertNotNull(comment);
