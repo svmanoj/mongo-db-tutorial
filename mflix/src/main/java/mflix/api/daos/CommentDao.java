@@ -3,6 +3,7 @@ package mflix.api.daos;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ReadConcern;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Aggregates;
@@ -28,6 +29,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Arrays;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -38,6 +40,7 @@ public class CommentDao extends AbstractMFlixDao {
     public static String COMMENT_COLLECTION = "comments";
     private final Logger log;
     private MongoCollection<Comment> commentCollection;
+    private MongoCollection<Critic> criticCollection;
     private CodecRegistry pojoCodecRegistry;
 
     @Autowired
@@ -52,6 +55,8 @@ public class CommentDao extends AbstractMFlixDao {
                         fromProviders(PojoCodecProvider.builder().automatic(true).build()));
         this.commentCollection =
                 db.getCollection(COMMENT_COLLECTION, Comment.class).withCodecRegistry(pojoCodecRegistry);
+        this.criticCollection =
+                db.getCollection(COMMENT_COLLECTION, Critic.class).withCodecRegistry(pojoCodecRegistry);
     }
 
     /**
@@ -163,6 +168,22 @@ public class CommentDao extends AbstractMFlixDao {
      */
     public List<Critic> mostActiveCommenters() {
         List<Critic> mostActive = new ArrayList<>();
+        List pipeline = Arrays.asList(new Document("$group",
+                        new Document("_id", "$email")
+                                .append("count",
+                                        new Document("$sum", 1))),
+                new Document("$sort",
+                        new Document("count", -1)), new Document("$limit", 20L));
+//
+//        AggregateIterable aggregateIterable = criticCollection.aggregate(pipeline);
+
+        criticCollection.aggregate(pipeline).into(mostActive);
+
+//        while (aggregateIterable.iterator().hasNext()){
+//            Object document = aggregateIterable.iterator().next();
+//            System.out.println("Document is");
+//            System.out.println(document.toString());
+//        }
         // // TODO> Ticket: User Report - execute a command that returns the
         // // list of 20 users, group by number of comments. Don't forget,
         // // this report is expected to be produced with an high durability
